@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css"
+      integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk="
+      crossorigin="anonymous"
+    />
+    <style>
+      .container{
+        width: 500px;
+        margin: 20px auto;
+      }
+      .text{
+        width:90%;
+        height: 40px;
+        font-size:20pt;
+      }
+    </style>
+    <link rel="stylesheet" href="css/App.css" />
+    <title>Chat Application</title>
+  </head>
+  <body>
+  <div class="channel-list__container">
+    <div class="channel-list__sidebar">
+      <div class="channel-list__sidebar__icon1">
+        <div class="icon1__inner">
+          <img src="university.png" alt="University" width="30"/>
+        </div>
+      </div>
+      <div class="channel-list__sidebar__icon2">
+        <div class="icon1__inner">
+          <img src="logout.png" alt="Logout" width="30" id="logout"/>
+        </div>
+      </div>
+    </div>
+    
+  <div class="channel-list__list__wrapper">
+    <div class="channel-list__header">
+      <p class="channel-list__header__text">Chat Application</p>
+      <p class="channel-list__header__text-content"><i class = "fas fa-comments"></i> Channel Name:</p>
+      <h2 class="channel-list__header__text-content" style="background-color: #0000cc; margin-right: 20px; text-align: center;" id="room-name"></h3>
+      <h3 class="channel-list__header__text-content"><i class="fas fa-users"> Users:</i></h3>
+      <ul id="users"></ul>
+    </div>
+    </div>
+    <div class="chat-messages">
+    </div>
+  </div>
+  
+  <div class="ButtonIn">
+    <div class="chat-container">
+      <form id="file-form">
+      <button class="send__button file_btn" id="get_file"><i class="fas fa-paperclip"></i> file</button>
+      <button class="send__button file_btn" id="send_file"><i class="fas fa-spinner"></i> load file</button>
+      </form>
+      <!-- <input type="file" id="my_file" class="file_btn" onchange="fileUpload()"> -->
+      <div class="chat-form-container">
+        <form id="chat-form">
+          <textarea
+            id="msg"
+            type="text"
+            placeholder="Enter Message"
+            class="text"
+            autocomplete="off"
+            style="resize: none;"
+            ></textarea>
+            <button class="send__button" type="submit"><i class="fas fa-paper-plane"></i> Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    
+  </div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-app.js";
+				import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-analytics.js";
+				import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-auth.js";
+				import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.13.0/firebase-storage.js";
+				// TODO: Add SDKs for Firebase products that you want to use
+				// https://firebase.google.com/docs/web/setup#available-libraries
+			  
+				// Your web app's Firebase configuration
+				// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+				const firebaseConfig = {
+				  apiKey: "AIzaSyDFHBO_FweDaFa1RrmwZoERQSHwSyD6mkY",
+				  authDomain: "isa-jcomp.firebaseapp.com",
+				  projectId: "isa-jcomp",
+				  storageBucket: "isa-jcomp.appspot.com",
+				  messagingSenderId: "1019882927742",
+				  appId: "1:1019882927742:web:2a7226a7fae478693a0a2f",
+				  measurementId: "G-J23JPF3JM5"
+				};
+				const app = initializeApp(firebaseConfig);
+  				const auth = getAuth();
+          logout.addEventListener('click',(e)=>{
+				
+        signOut(auth).then(() => {
+          // Sign-out successful.
+          alert('user loged out');
+        }).catch((error) => {
+          // An error happened.
+          const errorCode = error.code;
+          const errorMessage = error.message;
+     
+             alert(errorMessage);
+        });
+     });
+     var files=[];
+     var reader = new FileReader();
+     var btn = document.getElementById('get_file');
+     var sendBtn = document.getElementById('send_file');
+     var input=document.createElement('input');
+     input.type = 'file';
+     var name = '';
+     var url = ''
+     var extension = '';
+     input.onchange = e => {
+      files = e.target.files;
+      extension = GetExtName(files[0])
+      name = GetFileName(files[0])
+      reader.readAsDataURL(files[0])
+     }
+    //  reader.onload = function() {
+    //    myimg.src = reader.result;
+    //  }
+     btn.onclick = function() {
+      input.click();
+     }
+    function GetExtName(file) {
+      var temp = file.name.split('.');
+      var ext = temp.slice((temp.length-1),(temp.length));
+      return '.' + ext[0];
+    }
+    function GetFileName(file) {
+      var temp = file.name.split('.');
+      var fname = temp.slice(0, -1).join('.');
+      return fname;
+    }
+    async function UploadProcess() {
+      var ImgToUpload = files[0];
+      var ImageName = name;
+      const metadata = {
+        contentType: ImgToUpload.type
+      }
+      const storage = getStorage(app);
+      const storageRef = sRef(storage, "Images/"+ImageName);
+      const UploadTask = uploadBytesResumable(storageRef, ImgToUpload, metadata);
+      UploadTask.on('state-changed', (snapshot)=>{
+        var progress = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
+        console.log(progress);
+      },
+      (error) => {
+        alert("file not uploaded");
+      },
+      () => {
+        getDownloadURL(UploadTask.snapshot.ref).then((downloadURL)=>{
+          var url = downloadURL;
+          document.getElementById('msg').value=url;
+          document.getElementById('msg').value+=' url';
+        })
+      }
+      )
+    }
+    sendBtn.onclick = UploadProcess;
+    </script>
+    <script>
+
+    </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.9.2/qs.min.js"
+      integrity="sha256-TDxXjkAUay70ae/QJBEpGKkpVslXaHHayklIVglFRT4="
+      crossorigin="anonymous"
+    ></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script
+    src="https://cdn.jsdelivr.net/npm/emoji-button@latest/dist/index.min.js">
+    </script>
+    <script>
+      var input = document.querySelector('.text');
+      var picker = new EmojiButton({
+        position:'bottom-end'
+      })
+      picker.on('emoji', function(emoji){
+        input.value +=emoji;
+      })
+      input.addEventListener('click', function(){
+        picker.pickerVisible ? picker.hidePicker : picker.showPicker(input);
+      })
+    </script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
